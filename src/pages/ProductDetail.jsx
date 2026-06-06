@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, ShoppingBag, Download, Printer, Check } from 'lucide-react'
+
+const SITE_URL = 'https://culturalaimuse.com'
 import { useCart } from '../context/CartContext'
 import { PLACEHOLDER_PRODUCTS } from '../data/placeholderProducts'
 import ProductCard from '../components/ProductCard'
@@ -65,8 +68,43 @@ export default function ProductDetail() {
     .filter(p => p.id !== product.id && p.category === product.category)
     .slice(0, 3)
 
+  const productLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.description,
+    image: product.image_url,
+    url: `${SITE_URL}/product/${product.id}`,
+    brand: { '@type': 'Brand', name: 'Cultural AI Muse' },
+    category: product.category,
+    keywords: product.tags.join(', '),
+    offers: FORMAT_OPTIONS.map(opt => ({
+      '@type': 'Offer',
+      name: opt.label,
+      price: Math.round(product.price * opt.priceMultiplier).toString(),
+      priceCurrency: 'AUD',
+      availability: 'https://schema.org/InStock',
+      url: `${SITE_URL}/product/${product.id}`,
+    })),
+  }
+
   return (
     <div className="pt-24 min-h-screen">
+      <Helmet>
+        <title>{product.title} — Cultural AI Muse</title>
+        <meta name="description" content={`${product.description} Available as a digital download or archival print from Cultural AI Muse.`} />
+        <link rel="canonical" href={`${SITE_URL}/product/${product.id}`} />
+        <meta property="og:type" content="og:product" />
+        <meta property="og:url" content={`${SITE_URL}/product/${product.id}`} />
+        <meta property="og:title" content={`${product.title} — Cultural AI Muse`} />
+        <meta property="og:description" content={product.description} />
+        <meta property="og:image" content={product.image_url} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${product.title} — Cultural AI Muse`} />
+        <meta name="twitter:description" content={product.description} />
+        <meta name="twitter:image" content={product.image_url} />
+        <script type="application/ld+json">{JSON.stringify(productLd)}</script>
+      </Helmet>
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Back */}
         <Link

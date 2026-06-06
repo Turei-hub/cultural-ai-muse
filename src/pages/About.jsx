@@ -1,8 +1,25 @@
+import { Helmet } from 'react-helmet-async'
 import { ExternalLink, Heart } from 'lucide-react'
+
+const SITE_URL = 'https://culturalaimuse.com'
 
 export default function About() {
   return (
     <div className="pt-24 min-h-screen">
+      <Helmet>
+        <title>About the Creator — Cultural AI Muse</title>
+        <meta name="description" content="A Māori creator based in Australia using AI to celebrate Māori culture, atua, and the whenua. Learn about the kaupapa behind Cultural AI Muse — manaakitanga, kaitiakitanga, and whanaungatanga." />
+        <link rel="canonical" href={`${SITE_URL}/about`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${SITE_URL}/about`} />
+        <meta property="og:title" content="About the Creator — Cultural AI Muse" />
+        <meta property="og:description" content="A Māori creator based in Australia using AI to celebrate Māori culture, atua, and the whenua." />
+        <meta property="og:image" content={`${SITE_URL}/og-about.jpg`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="About the Creator — Cultural AI Muse" />
+        <meta name="twitter:description" content="A Māori creator based in Australia using AI to celebrate Māori culture, atua, and the whenua." />
+        <meta name="twitter:image" content={`${SITE_URL}/og-about.jpg`} />
+      </Helmet>
       {/* Hero */}
       <section className="relative py-24 px-6 overflow-hidden">
         <div
@@ -83,7 +100,7 @@ export default function About() {
             Follow along on TikTok where I share behind-the-scenes creation, cultural context, and new art drops before they hit the shop.
           </p>
           <a
-            href="https://www.tiktok.com"
+            href="https://www.tiktok.com/@cultural.ai.muse"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-[#141414] border border-[#2a2a2a] text-[#f5f0e8] px-8 py-4 rounded text-sm hover:border-[#c9a84c]/40 hover:text-[#c9a84c] transition-colors"

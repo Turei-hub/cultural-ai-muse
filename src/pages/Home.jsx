@@ -1,13 +1,45 @@
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { ArrowRight, ExternalLink, Users, Heart, Eye } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { PLACEHOLDER_PRODUCTS } from '../data/placeholderProducts'
 
 const FEATURED = PLACEHOLDER_PRODUCTS.filter(p => p.is_featured).slice(0, 3)
 
+const SITE_URL = 'https://culturalaimuse.com'
+
+const homeLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  name: 'Cultural AI Muse',
+  description: 'AI-generated imagery celebrating Māori culture — portraits, landscapes, whakataukī, and seasonal art by a Māori creator based in Australia.',
+  url: SITE_URL,
+  image: `${SITE_URL}/og-home.jpg`,
+  currenciesAccepted: 'AUD',
+  paymentAccepted: 'Credit Card',
+  areaServed: ['AU', 'NZ'],
+}
+
 export default function Home() {
   return (
     <div>
+      <Helmet>
+        <title>Cultural AI Muse — Māori Art & Digital Creations</title>
+        <meta name="description" content="AI-generated imagery celebrating Māori culture. Portraits, landscapes, whakataukī quotes, and seasonal art by a Māori creator based in Australia. Digital downloads & archival prints." />
+        <link rel="canonical" href={SITE_URL} />
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:title" content="Cultural AI Muse — Māori Art & Digital Creations" />
+        <meta property="og:description" content="AI-generated imagery celebrating Māori culture. Digital downloads & archival prints by a Māori creator based in Australia." />
+        <meta property="og:image" content={`${SITE_URL}/og-home.jpg`} />
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Cultural AI Muse — Māori Art & Digital Creations" />
+        <meta name="twitter:description" content="AI-generated imagery celebrating Māori culture. Digital downloads & archival prints." />
+        <meta name="twitter:image" content={`${SITE_URL}/og-home.jpg`} />
+        <script type="application/ld+json">{JSON.stringify(homeLd)}</script>
+      </Helmet>
       <Hero />
       <FeaturedSection />
       <KaupapaBanner />
@@ -15,6 +47,8 @@ export default function Home() {
     </div>
   )
 }
+
+export { SITE_URL }
 
 function Hero() {
   return (
@@ -157,13 +191,14 @@ function SocialProof() {
 
       <div className="text-center">
         <a
-          href="https://www.tiktok.com"
+          href="https://www.tiktok.com/@cultural.ai.muse"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 border border-[#2a2a2a] text-[#9a9080] px-8 py-4 rounded text-sm hover:border-[#c9a84c]/40 hover:text-[#c9a84c] transition-colors"
+          className="inline-flex flex-col items-center gap-3 hover:opacity-80 transition-opacity"
         >
-          <ExternalLink size={16} />
-          Watch on TikTok
+          <img src="/tiktok.png" alt="Follow @cultural.ai.muse on TikTok" className="h-[189px] w-auto" />
+          <span className="text-[#f5f0e8] text-sm font-medium">Follow us on TikTok</span>
+          <span className="text-[#c9a84c] text-xs tracking-widest">@cultural.ai.muse</span>
         </a>
       </div>
     </section>

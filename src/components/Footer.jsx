@@ -33,7 +33,7 @@ export default function Footer() {
           <div>
             <h4 className="text-[#f5f0e8] text-xs tracking-widest uppercase mb-5">Connect</h4>
             <a
-              href="https://www.tiktok.com"
+              href="https://www.tiktok.com/@cultural.ai.muse"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-[#9a9080] hover:text-[#c9a84c] transition-colors mb-6"

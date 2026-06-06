@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Search } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { PLACEHOLDER_PRODUCTS, CATEGORIES } from '../data/placeholderProducts'
+
+const SITE_URL = 'https://culturalaimuse.com'
 
 export default function Shop() {
   const [activeCategory, setActiveCategory] = useState('All')
@@ -25,6 +28,20 @@ export default function Shop() {
 
   return (
     <div className="pt-24 min-h-screen">
+      <Helmet>
+        <title>The Collection — Māori AI Art Gallery | Cultural AI Muse</title>
+        <meta name="description" content="Browse the full gallery of AI-generated Māori art. Portraits of atua, Aotearoa landscapes, whakataukī quotes, and wahine artworks. Available as digital downloads or archival prints." />
+        <link rel="canonical" href={`${SITE_URL}/shop`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${SITE_URL}/shop`} />
+        <meta property="og:title" content="The Collection — Māori AI Art Gallery | Cultural AI Muse" />
+        <meta property="og:description" content="Browse AI-generated Māori art — portraits, landscapes, whakataukī, and wahine works. Digital downloads & archival prints." />
+        <meta property="og:image" content={`${SITE_URL}/og-shop.jpg`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="The Collection — Māori AI Art Gallery | Cultural AI Muse" />
+        <meta name="twitter:description" content="Browse AI-generated Māori art. Digital downloads & archival prints." />
+        <meta name="twitter:image" content={`${SITE_URL}/og-shop.jpg`} />
+      </Helmet>
       {/* Header */}
       <section className="py-16 px-6 text-center border-b border-[#2a2a2a]">
         <p className="text-[#c9a84c] text-xs tracking-[0.3em] uppercase mb-4">Gallery</p>

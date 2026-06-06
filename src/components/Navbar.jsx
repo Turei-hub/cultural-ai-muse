@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { ShoppingBag, Menu, X } from 'lucide-react'
+import { ShoppingBag, Menu, X, LayoutDashboard } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function Navbar() {
   const { itemCount } = useCart()
+  const { isAuthenticated } = useAuth()
   const [open, setOpen] = useState(false)
 
   const linkClass = ({ isActive }) =>
@@ -32,8 +34,17 @@ export default function Navbar() {
           <NavLink to="/about" className={linkClass}>About</NavLink>
         </div>
 
-        {/* Cart + mobile toggle */}
+        {/* Cart + admin + mobile toggle */}
         <div className="flex items-center gap-4">
+          {isAuthenticated && (
+            <Link
+              to="/admin"
+              className="hidden md:flex items-center gap-1.5 text-xs tracking-widest uppercase text-[#c9a84c] border border-[#c9a84c]/30 px-3 py-1.5 rounded hover:bg-[#c9a84c]/10 transition-colors"
+            >
+              <LayoutDashboard size={13} />
+              Admin
+            </Link>
+          )}
           <Link to="/cart" className="relative p-2 text-[#f5f0e8]/70 hover:text-[#c9a84c] transition-colors">
             <ShoppingBag size={20} />
             {itemCount > 0 && (
@@ -58,6 +69,9 @@ export default function Navbar() {
           <NavLink to="/" end className={linkClass} onClick={() => setOpen(false)}>Home</NavLink>
           <NavLink to="/shop" className={linkClass} onClick={() => setOpen(false)}>Shop</NavLink>
           <NavLink to="/about" className={linkClass} onClick={() => setOpen(false)}>About</NavLink>
+          {isAuthenticated && (
+            <NavLink to="/admin" className={linkClass} onClick={() => setOpen(false)}>Admin Dashboard</NavLink>
+          )}
         </div>
       )}
     </nav>

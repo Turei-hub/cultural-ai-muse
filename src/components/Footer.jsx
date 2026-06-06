@@ -57,13 +57,13 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Discreet admin link — transparent, only visible on hover */}
+        {/* Admin login link */}
         <div className="text-center mt-6">
           <Link
             to="/admin/login"
-            className="text-transparent hover:text-[#2a2a2a] text-[10px] transition-colors duration-300 select-none"
+            className="text-[#2a2a2a] hover:text-[#9a9080] text-[11px] tracking-widest uppercase transition-colors duration-300"
           >
-            ·
+            Admin
           </Link>
         </div>
       </div>

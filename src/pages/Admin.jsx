@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Upload, Package, ShoppingBag, Plus, Eye, EyeOff,
-  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings
+  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings, Home
 } from 'lucide-react'
 import { CATEGORIES } from '../data/placeholderProducts'
 import { api } from '../lib/api'
@@ -69,13 +69,22 @@ export default function Admin() {
             <p className="text-[#c9a84c] text-xs tracking-[0.3em] uppercase mb-1">Admin Portal</p>
             <h1 className="font-serif text-3xl text-[#f5f0e8]">Cultural AI Muse</h1>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-[#9a9080] text-sm hover:text-red-400 transition-colors border border-[#2a2a2a] px-4 py-2 rounded hover:border-red-400/30"
-          >
-            <LogOut size={14} />
-            Sign Out
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-[#9a9080] text-sm hover:text-[#c9a84c] transition-colors border border-[#2a2a2a] px-4 py-2 rounded hover:border-[#c9a84c]/30"
+            >
+              <Home size={14} />
+              View Site
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-[#9a9080] text-sm hover:text-red-400 transition-colors border border-[#2a2a2a] px-4 py-2 rounded hover:border-red-400/30"
+            >
+              <LogOut size={14} />
+              Sign Out
+            </button>
+          </div>
         </div>
 
         {/* Stats */}

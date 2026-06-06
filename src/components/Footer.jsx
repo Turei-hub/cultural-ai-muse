@@ -56,6 +56,16 @@ export default function Footer() {
             Created with aroha and deep respect for Māori culture and tikanga.
           </p>
         </div>
+
+        {/* Discreet admin link — transparent, only visible on hover */}
+        <div className="text-center mt-6">
+          <Link
+            to="/admin/login"
+            className="text-transparent hover:text-[#2a2a2a] text-[10px] transition-colors duration-300 select-none"
+          >
+            ·
+          </Link>
+        </div>
       </div>
     </footer>
   )

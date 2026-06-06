@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
+import { api } from '../lib/api'
+
 
 export default function Footer() {
   return (
@@ -66,10 +69,13 @@ function NewsletterForm() {
     e.preventDefault()
     if (!email) return
     setStatus('loading')
-    // In production: insert to Supabase newsletter table
-    await new Promise(r => setTimeout(r, 800))
-    setStatus('done')
-    setEmail('')
+    try {
+      await api.subscribe(email)
+      setStatus('done')
+      setEmail('')
+    } catch {
+      setStatus('idle')
+    }
   }
 
   if (status === 'done') {
@@ -95,5 +101,3 @@ function NewsletterForm() {
     </form>
   )
 }
-
-import { useState } from 'react'

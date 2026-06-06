@@ -1,13 +1,24 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2, ArrowRight, ShoppingBag } from 'lucide-react'
+import { Trash2, ArrowRight, ShoppingBag, Loader } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { api } from '../lib/api'
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, total, clearCart } = useCart()
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleCheckout() {
-    // In production: create Stripe checkout session via Supabase Edge Function
-    alert('Stripe checkout integration: configure your Supabase Edge Function and Stripe keys in .env to enable payments.')
+    setCheckingOut(true)
+    setError('')
+    try {
+      const { url } = await api.createCheckoutSession(items)
+      window.location.href = url
+    } catch (err) {
+      setError('Checkout unavailable — ensure Stripe keys are configured.')
+      setCheckingOut(false)
+    }
   }
 
   if (items.length === 0) {
@@ -110,12 +121,14 @@ export default function Cart() {
             </div>
           </div>
 
+          {error && <p className="text-red-400 text-xs mb-3 text-center">{error}</p>}
+
           <button
             onClick={handleCheckout}
-            className="w-full flex items-center justify-center gap-2 bg-[#c9a84c] text-[#0a0a0a] py-4 rounded font-semibold tracking-wider uppercase text-sm hover:bg-[#e8c97a] transition-colors"
+            disabled={checkingOut}
+            className="w-full flex items-center justify-center gap-2 bg-[#c9a84c] text-[#0a0a0a] py-4 rounded font-semibold tracking-wider uppercase text-sm hover:bg-[#e8c97a] transition-colors disabled:opacity-60"
           >
-            Proceed to Checkout
-            <ArrowRight size={16} />
+            {checkingOut ? <><Loader size={16} className="animate-spin" /> Processing…</> : <>Proceed to Checkout <ArrowRight size={16} /></>}
           </button>
 
           <p className="text-[#9a9080] text-xs text-center mt-4">

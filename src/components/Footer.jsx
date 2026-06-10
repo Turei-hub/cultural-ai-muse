@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
-import { api } from '../lib/api'
+import { supabase } from '../lib/supabase'
 import { useSettings } from '../context/SettingsContext'
 
 
@@ -83,17 +83,26 @@ function NewsletterForm() {
     e.preventDefault()
     if (!email) return
     setStatus('loading')
-    try {
-      await api.subscribe(email)
+    const { error } = await supabase
+      .from('newsletter_subscribers')
+      .insert({ email })
+    if (error && error.code === '23505') {
+      // Already subscribed — treat as success
+      setStatus('done')
+    } else if (error) {
+      setStatus('error')
+    } else {
       setStatus('done')
       setEmail('')
-    } catch {
-      setStatus('idle')
     }
   }
 
   if (status === 'done') {
     return <p className="text-[#c9a84c] text-xs">Kia ora! You're on the list ✨</p>
+  }
+
+  if (status === 'error') {
+    return <p className="text-red-400 text-xs">Something went wrong — please try again.</p>
   }
 
   return (

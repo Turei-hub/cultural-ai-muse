@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Search } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { PLACEHOLDER_PRODUCTS, CATEGORIES } from '../data/placeholderProducts'
+import { supabase } from '../lib/supabase'
 
 const SITE_URL = 'https://culturalaimuse.com'
 
@@ -10,14 +11,26 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('featured')
+  const [allProducts, setAllProducts] = useState(PLACEHOLDER_PRODUCTS)
+  const [loading, setLoading] = useState(true)
 
-  const filtered = PLACEHOLDER_PRODUCTS
-    .filter(p => p.is_active)
+  useEffect(() => {
+    supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .then(({ data }) => {
+        if (data?.length) setAllProducts(data)
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filtered = allProducts
     .filter(p => activeCategory === 'All' || p.category === activeCategory)
     .filter(p =>
       search === '' ||
       p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
+      (p.tags || []).some(t => t.toLowerCase().includes(search.toLowerCase()))
     )
     .sort((a, b) => {
       if (sort === 'price-asc') return a.price - b.price

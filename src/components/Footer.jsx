@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import { api } from '../lib/api'
+import { useSettings } from '../context/SettingsContext'
 
 
 export default function Footer() {
+  const { settings } = useSettings()
   return (
     <footer className="border-t border-[#2a2a2a] bg-[#0a0a0a] mt-24">
       <div className="max-w-7xl mx-auto px-6 py-16">
@@ -41,10 +43,12 @@ export default function Footer() {
               <ExternalLink size={14} />
               Follow on TikTok
             </a>
-            <div className="mt-4">
-              <p className="text-[#9a9080] text-xs mb-3">Join the whanau — get new art drops first</p>
-              <NewsletterForm />
-            </div>
+            {settings.showNewsletter && (
+              <div className="mt-4">
+                <p className="text-[#9a9080] text-xs mb-3">Join the whanau — get new art drops first</p>
+                <NewsletterForm />
+              </div>
+            )}
           </div>
         </div>
 

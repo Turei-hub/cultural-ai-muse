@@ -1,10 +1,30 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ArrowRight, ExternalLink, Users, Heart, Eye } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { PLACEHOLDER_PRODUCTS } from '../data/placeholderProducts'
+import { supabase } from '../lib/supabase'
+import { useSettings } from '../context/SettingsContext'
 
-const FEATURED = PLACEHOLDER_PRODUCTS.filter(p => p.is_featured).slice(0, 3)
+const FALLBACK_FEATURED = PLACEHOLDER_PRODUCTS.filter(p => p.is_featured).slice(0, 3)
+
+function MarqueeBanner() {
+  const { settings } = useSettings()
+  const items = [...settings.marqueeItems, ...settings.marqueeItems]
+  return (
+    <div className="overflow-hidden border-b border-[#c9a84c]/20 bg-[#141414] py-3 mt-[72px]">
+      <div className="marquee-track">
+        {items.map((item, i) => (
+          <span key={i} className="flex items-center gap-4 px-6 text-xs tracking-[0.2em] uppercase whitespace-nowrap">
+            <span className="text-[#f5f0e8]">{item}</span>
+            <span className="text-[#c9a84c]">✦</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 const SITE_URL = 'https://culturalaimuse.com'
 
@@ -21,6 +41,19 @@ const homeLd = {
 }
 
 export default function Home() {
+  const { settings } = useSettings()
+  const [featured, setFeatured] = useState(FALLBACK_FEATURED)
+
+  useEffect(() => {
+    supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .eq('is_featured', true)
+      .limit(3)
+      .then(({ data }) => { if (data?.length) setFeatured(data) })
+  }, [])
+
   return (
     <div>
       <Helmet>
@@ -40,10 +73,11 @@ export default function Home() {
         <meta name="twitter:image" content={`${SITE_URL}/og-home.jpg`} />
         <script type="application/ld+json">{JSON.stringify(homeLd)}</script>
       </Helmet>
+      <MarqueeBanner />
       <Hero />
-      <FeaturedSection />
+      <FeaturedSection products={featured} />
       <KaupapaBanner />
-      <SocialProof />
+      {settings.showSocialStats && <SocialProof />}
     </div>
   )
 }
@@ -112,7 +146,7 @@ function Hero() {
   )
 }
 
-function FeaturedSection() {
+function FeaturedSection({ products }) {
   return (
     <section className="py-24 px-6 max-w-7xl mx-auto">
       <div className="text-center mb-16">
@@ -122,7 +156,7 @@ function FeaturedSection() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {FEATURED.map(product => (
+        {products.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

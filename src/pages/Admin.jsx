@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Upload, Package, ShoppingBag, Plus, Eye, EyeOff,
-  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings, Home
+  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings, Home, GripVertical
 } from 'lucide-react'
 import { CATEGORIES } from '../data/placeholderProducts'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { useSettings } from '../context/SettingsContext'
 
 const TABS = [
   { id: 'products', label: 'Products', icon: Package },
@@ -440,40 +441,166 @@ function AboutTab() {
 
 /* ── Settings Tab ─────────────────────────────────── */
 function SettingsTab() {
+  const { settings, update } = useSettings()
+  const [newItem, setNewItem] = useState('')
+  const [editIndex, setEditIndex] = useState(null)
+  const [editValue, setEditValue] = useState('')
+
+  function addItem() {
+    const trimmed = newItem.trim()
+    if (!trimmed) return
+    update('marqueeItems', [...settings.marqueeItems, trimmed])
+    setNewItem('')
+  }
+
+  function removeItem(i) {
+    update('marqueeItems', settings.marqueeItems.filter((_, idx) => idx !== i))
+  }
+
+  function startEdit(i) {
+    setEditIndex(i)
+    setEditValue(settings.marqueeItems[i])
+  }
+
+  function saveEdit(i) {
+    const updated = [...settings.marqueeItems]
+    updated[i] = editValue.trim() || updated[i]
+    update('marqueeItems', updated)
+    setEditIndex(null)
+  }
+
   return (
-    <div className="max-w-2xl space-y-6">
-      <div className="bg-[#141414] border border-[#2a2a2a] rounded-lg p-6">
-        <h3 className="font-serif text-xl text-[#f5f0e8] mb-2">Admin Credentials</h3>
-        <p className="text-[#9a9080] text-sm mb-4 leading-relaxed">
-          Your admin username and password are set via environment variables in Vercel. To change them:
-        </p>
-        <ol className="space-y-2 text-[#9a9080] text-sm list-decimal list-inside">
-          <li>Go to <span className="text-[#c9a84c]">Vercel → Settings → Environment Variables</span></li>
-          <li>Update <span className="text-[#f5f0e8] font-mono text-xs bg-[#1e1e1e] px-1 py-0.5 rounded">VITE_ADMIN_USERNAME</span> and <span className="text-[#f5f0e8] font-mono text-xs bg-[#1e1e1e] px-1 py-0.5 rounded">VITE_ADMIN_PASSWORD</span></li>
-          <li>Redeploy the site</li>
-        </ol>
+    <div className="max-w-2xl space-y-4">
+
+      {/* Newsletter Signup */}
+      <SettingRow
+        label="Newsletter Signup"
+        description="Show the email signup form in the footer"
+        checked={settings.showNewsletter}
+        onChange={v => update('showNewsletter', v)}
+      />
+
+      {/* Social Stats */}
+      <SettingRow
+        label="Social Stats Section"
+        description="Show TikTok follower counts on the homepage"
+        checked={settings.showSocialStats}
+        onChange={v => update('showSocialStats', v)}
+      />
+
+      {/* Maintenance Banner */}
+      <div className="bg-[#141414] border border-[#2a2a2a] rounded-lg p-5 space-y-4">
+        <SettingRow
+          label="Maintenance Banner"
+          description="Show an announcement banner across the top of the site"
+          checked={settings.maintenanceBanner}
+          onChange={v => update('maintenanceBanner', v)}
+          inline
+        />
+        {settings.maintenanceBanner && (
+          <div>
+            <label className="text-[#f5f0e8] text-xs tracking-widest uppercase mb-2 block">Banner Message</label>
+            <input
+              type="text"
+              value={settings.maintenanceMessage}
+              onChange={e => update('maintenanceMessage', e.target.value)}
+              className="w-full bg-[#1e1e1e] border border-[#2a2a2a] text-[#f5f0e8] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#c9a84c]"
+              placeholder="e.g. New collection dropping Friday! 🌿"
+            />
+            <p className="text-[#9a9080] text-xs mt-2">This message appears in a gold bar at the top of every page.</p>
+          </div>
+        )}
       </div>
 
-      <div className="bg-[#141414] border border-[#2a2a2a] rounded-lg p-6">
-        <h3 className="font-serif text-xl text-[#f5f0e8] mb-2">Connected Services</h3>
-        <div className="space-y-3 mt-4">
-          {[
-            { name: 'Cloudinary', status: !!import.meta.env.VITE_CLOUDINARY_CLOUD_NAME, detail: 'Image storage & delivery' },
-            { name: 'MongoDB', status: false, detail: 'Database (configure MONGODB_URI in Vercel)' },
-            { name: 'Stripe', status: !!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, detail: 'Payments' },
-          ].map(s => (
-            <div key={s.name} className="flex items-center justify-between py-3 border-b border-[#2a2a2a] last:border-0">
-              <div>
-                <p className="text-[#f5f0e8] text-sm">{s.name}</p>
-                <p className="text-[#9a9080] text-xs">{s.detail}</p>
-              </div>
-              <span className={`text-xs px-2 py-1 rounded border ${s.status ? 'border-green-800/50 text-green-400 bg-green-900/10' : 'border-[#2a2a2a] text-[#9a9080]'}`}>
-                {s.status ? 'Connected' : 'Not configured'}
+      {/* Marquee Banner Control */}
+      <div className="bg-[#141414] border border-[#2a2a2a] rounded-lg p-5 space-y-4">
+        <div>
+          <p className="text-[#f5f0e8] text-sm font-medium">Scrolling Marquee Banner</p>
+          <p className="text-[#9a9080] text-xs mt-0.5">Edit the items that scroll across the homepage banner</p>
+        </div>
+
+        {/* Preview */}
+        <div className="overflow-hidden border border-[#2a2a2a] rounded bg-[#0a0a0a] py-2">
+          <div className="flex gap-6 px-4 overflow-x-auto scrollbar-none">
+            {settings.marqueeItems.map((item, i) => (
+              <span key={i} className="flex items-center gap-2 text-[10px] tracking-widest uppercase whitespace-nowrap text-[#9a9080]">
+                {item} <span className="text-[#c9a84c]">✦</span>
               </span>
+            ))}
+          </div>
+          <p className="text-[#9a9080] text-[10px] text-center mt-1 opacity-50">Preview</p>
+        </div>
+
+        {/* Current items list */}
+        <div className="space-y-2">
+          {settings.marqueeItems.map((item, i) => (
+            <div key={i} className="flex items-center gap-2 bg-[#1e1e1e] border border-[#2a2a2a] rounded px-3 py-2">
+              <GripVertical size={12} className="text-[#2a2a2a] flex-shrink-0" />
+              {editIndex === i ? (
+                <>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editValue}
+                    onChange={e => setEditValue(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveEdit(i); if (e.key === 'Escape') setEditIndex(null) }}
+                    className="flex-1 bg-transparent text-[#f5f0e8] text-xs focus:outline-none"
+                  />
+                  <button onClick={() => saveEdit(i)} className="text-[#c9a84c] text-xs hover:text-[#e8c97a]"><Save size={12} /></button>
+                  <button onClick={() => setEditIndex(null)} className="text-[#9a9080] text-xs hover:text-[#f5f0e8]"><X size={12} /></button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 text-[#f5f0e8] text-xs">{item}</span>
+                  <button onClick={() => startEdit(i)} className="text-[#9a9080] hover:text-[#c9a84c] transition-colors"><Edit2 size={12} /></button>
+                  <button onClick={() => removeItem(i)} className="text-[#9a9080] hover:text-red-400 transition-colors"><Trash2 size={12} /></button>
+                </>
+              )}
             </div>
           ))}
         </div>
+
+        {/* Add new item */}
+        <div>
+          <label className="text-[#f5f0e8] text-xs tracking-widest uppercase mb-2 block">Add New Item</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newItem}
+              onChange={e => setNewItem(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addItem()}
+              placeholder="e.g. New Collection Available Now"
+              className="flex-1 bg-[#1e1e1e] border border-[#2a2a2a] text-[#f5f0e8] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#c9a84c] placeholder:text-[#9a9080]/50"
+            />
+            <button
+              onClick={addItem}
+              className="bg-[#c9a84c] text-[#0a0a0a] px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider hover:bg-[#e8c97a] transition-colors flex items-center gap-1"
+            >
+              <Plus size={13} /> Add
+            </button>
+          </div>
+        </div>
       </div>
+
+    </div>
+  )
+}
+
+function SettingRow({ label, description, checked, onChange, inline }) {
+  return (
+    <div className={`bg-[#141414] border border-[#2a2a2a] rounded-lg p-5 flex items-center justify-between gap-4 ${inline ? 'border-0 p-0 bg-transparent' : ''}`}>
+      <div>
+        <p className="text-[#f5f0e8] text-sm font-medium">{label}</p>
+        <p className="text-[#9a9080] text-xs mt-0.5">{description}</p>
+      </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+          checked ? 'bg-[#c9a84c]' : 'bg-[#2a2a2a]'
+        }`}
+      >
+        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+      </button>
     </div>
   )
 }

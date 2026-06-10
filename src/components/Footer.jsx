@@ -91,6 +91,7 @@ function NewsletterForm() {
       setStatus('done')
     } else if (error) {
       setStatus('error')
+      setTimeout(() => setStatus('idle'), 3000)
     } else {
       setStatus('done')
       setEmail('')

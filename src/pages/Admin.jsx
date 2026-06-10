@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Upload, Package, ShoppingBag, Plus, Eye, EyeOff,
-  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings, Home, GripVertical, Users, Mail
+  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings, Home, GripVertical, Users, Mail, Send, CheckCircle
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { CATEGORIES } from '../data/placeholderProducts'
@@ -530,6 +530,127 @@ function SubscribersTab() {
           </div>
         </div>
       )}
+
+      {/* Send Newsletter Panel */}
+      <NewsletterComposer subscriberCount={subscribers.length} />
+    </div>
+  )
+}
+
+/* ── Newsletter Composer ──────────────────────────── */
+function NewsletterComposer({ subscriberCount }) {
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+  const [preview, setPreview] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [result, setResult] = useState(null) // { success, count }
+
+  async function handleSend() {
+    if (!subject.trim() || !body.trim()) return
+    if (!confirm(`Send this newsletter to ${subscriberCount} subscriber${subscriberCount !== 1 ? 's' : ''}?`)) return
+
+    setSending(true)
+    setResult(null)
+
+    const html = `
+      <div style="background:#0a0a0a;color:#f5f0e8;font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:40px 32px;">
+        <h1 style="color:#c9a84c;font-size:28px;margin-bottom:4px;">Cultural AI Muse</h1>
+        <p style="color:#9a9080;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:32px;">Māori Art & Digital Creations</p>
+        <div style="line-height:1.8;color:#f5f0e8;font-size:15px;white-space:pre-wrap;">${body}</div>
+        <div style="margin-top:40px;padding-top:24px;border-top:1px solid #2a2a2a;">
+          <a href="https://cultural-ai-muse.vercel.app/shop"
+             style="display:inline-block;background:#c9a84c;color:#0a0a0a;padding:12px 28px;text-decoration:none;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;font-size:12px;border-radius:4px;">
+            View the Gallery
+          </a>
+        </div>
+        <p style="color:#9a9080;font-size:11px;margin-top:32px;">
+          © 2026 Cultural AI Muse · Based in Australia · Māori-owned
+        </p>
+      </div>
+    `
+
+    const { data, error } = await supabase.functions.invoke('send-newsletter', {
+      body: { subject, html },
+    })
+
+    setSending(false)
+    if (error) {
+      setResult({ success: false })
+    } else {
+      setResult({ success: true, count: data?.sent || subscriberCount })
+      setSubject('')
+      setBody('')
+    }
+  }
+
+  return (
+    <div className="bg-[#141414] border border-[#2a2a2a] rounded-lg p-6 space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[#f5f0e8] text-sm font-medium flex items-center gap-2">
+            <Send size={14} className="text-[#c9a84c]" />
+            Send Newsletter
+          </p>
+          <p className="text-[#9a9080] text-xs mt-0.5">Compose and send an email to all {subscriberCount} subscribers</p>
+        </div>
+        <button
+          onClick={() => setPreview(!preview)}
+          className="text-[#9a9080] text-xs border border-[#2a2a2a] px-3 py-1.5 rounded hover:border-[#c9a84c]/40 hover:text-[#c9a84c] transition-colors"
+        >
+          {preview ? 'Edit' : 'Preview'}
+        </button>
+      </div>
+
+      {result && (
+        <div className={`flex items-center gap-2 text-xs px-4 py-3 rounded border ${result.success ? 'border-green-800/50 text-green-400 bg-green-900/10' : 'border-red-800/50 text-red-400 bg-red-900/10'}`}>
+          {result.success
+            ? <><CheckCircle size={14} /> Newsletter sent to {result.count} subscriber{result.count !== 1 ? 's' : ''}!</>
+            : <><X size={14} /> Failed to send — check your Resend setup.</>
+          }
+        </div>
+      )}
+
+      {preview ? (
+        <div className="border border-[#2a2a2a] rounded p-5 bg-[#0a0a0a]">
+          <p className="text-[#9a9080] text-xs uppercase tracking-widest mb-1">Subject</p>
+          <p className="text-[#f5f0e8] text-sm font-medium mb-4">{subject || '(no subject)'}</p>
+          <div className="koru-divider mb-4" />
+          <p className="text-[#9a9080] text-xs uppercase tracking-widest mb-2">Body</p>
+          <p className="text-[#f5f0e8] text-sm leading-relaxed whitespace-pre-wrap">{body || '(empty)'}</p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <label className="text-[#f5f0e8] text-xs tracking-widest uppercase mb-2 block">Subject Line</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              placeholder="e.g. New collection just dropped — check it out 🌿"
+              className="w-full bg-[#1e1e1e] border border-[#2a2a2a] text-[#f5f0e8] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#c9a84c] placeholder:text-[#9a9080]/50"
+            />
+          </div>
+          <div>
+            <label className="text-[#f5f0e8] text-xs tracking-widest uppercase mb-2 block">Message</label>
+            <textarea
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              placeholder="Kia ora whānau! We've just dropped a new collection of AI-generated Māori art..."
+              rows={8}
+              className="w-full bg-[#1e1e1e] border border-[#2a2a2a] text-[#f5f0e8] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#c9a84c] placeholder:text-[#9a9080]/50 resize-none"
+            />
+            <p className="text-[#9a9080] text-xs mt-1">Plain text — a "View the Gallery" button is added automatically.</p>
+          </div>
+        </>
+      )}
+
+      <button
+        onClick={handleSend}
+        disabled={sending || !subject.trim() || !body.trim() || subscriberCount === 0}
+        className="flex items-center gap-2 bg-[#c9a84c] text-[#0a0a0a] px-6 py-3 rounded font-semibold text-sm tracking-wider uppercase hover:bg-[#e8c97a] transition-colors disabled:opacity-40"
+      >
+        {sending ? <><Loader size={14} className="animate-spin" /> Sending…</> : <><Send size={14} /> Send to {subscriberCount} Subscriber{subscriberCount !== 1 ? 's' : ''}</>}
+      </button>
     </div>
   )
 }

@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Upload, Package, ShoppingBag, Plus, Eye, EyeOff,
-  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings, Home, GripVertical
+  Loader, X, Trash2, Edit2, Save, LogOut, FileText, Link, Settings, Home, GripVertical, Users, Mail
 } from 'lucide-react'
+import { supabase } from '../lib/supabase'
 import { CATEGORIES } from '../data/placeholderProducts'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
@@ -13,6 +14,7 @@ const TABS = [
   { id: 'products', label: 'Products', icon: Package },
   { id: 'add', label: 'Add New', icon: Plus },
   { id: 'orders', label: 'Orders', icon: ShoppingBag },
+  { id: 'subscribers', label: 'Subscribers', icon: Users },
   { id: 'about', label: 'About Page', icon: FileText },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
@@ -127,6 +129,7 @@ export default function Admin() {
         )}
         {tab === 'add' && <AddProductTab onSuccess={onProductAdded} />}
         {tab === 'orders' && <OrdersTab />}
+        {tab === 'subscribers' && <SubscribersTab />}
         {tab === 'about' && <AboutTab />}
         {tab === 'settings' && <SettingsTab />}
       </div>
@@ -436,6 +439,98 @@ function AboutTab() {
         {saving ? <><Loader size={14} className="animate-spin" /> Saving…</> : saved ? '✓ Saved!' : <><Save size={14} /> Save Changes</>}
       </button>
     </form>
+  )
+}
+
+/* ── Subscribers Tab ─────────────────────────────── */
+function SubscribersTab() {
+  const [subscribers, setSubscribers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    supabase
+      .from('newsletter_subscribers')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setSubscribers(data) })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filtered = subscribers.filter(s =>
+    s.email.toLowerCase().includes(search.toLowerCase())
+  )
+
+  function copyEmails() {
+    const emails = filtered.map(s => s.email).join(', ')
+    navigator.clipboard.writeText(emails)
+  }
+
+  if (loading) return <div className="flex items-center justify-center py-16"><Loader size={24} className="text-[#c9a84c] animate-spin" /></div>
+
+  return (
+    <div className="space-y-5">
+      {/* Stats + actions */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex gap-4">
+          <div className="bg-[#141414] border border-[#2a2a2a] rounded-lg px-5 py-3">
+            <p className="font-serif text-3xl text-[#c9a84c]">{subscribers.length}</p>
+            <p className="text-[#9a9080] text-xs mt-0.5">Total Subscribers</p>
+          </div>
+        </div>
+        <button
+          onClick={copyEmails}
+          className="flex items-center gap-2 border border-[#2a2a2a] text-[#9a9080] text-xs px-4 py-2 rounded hover:border-[#c9a84c]/40 hover:text-[#c9a84c] transition-colors"
+        >
+          <Mail size={13} />
+          Copy All Emails
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search by email..."
+          className="w-full bg-[#141414] border border-[#2a2a2a] text-[#f5f0e8] text-sm px-4 py-2.5 rounded focus:outline-none focus:border-[#c9a84c] placeholder:text-[#9a9080]/50"
+        />
+      </div>
+
+      {/* Table */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <Users size={36} className="text-[#2a2a2a] mx-auto mb-4" />
+          <p className="font-serif text-2xl text-[#f5f0e8]/40 mb-2">No subscribers yet</p>
+          <p className="text-[#9a9080] text-sm">Emails will appear here once people sign up.</p>
+        </div>
+      ) : (
+        <div className="bg-[#141414] border border-[#2a2a2a] rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="grid grid-cols-3 px-5 py-3 border-b border-[#2a2a2a]">
+            <p className="text-[#9a9080] text-xs tracking-widest uppercase col-span-2">Email</p>
+            <p className="text-[#9a9080] text-xs tracking-widest uppercase">Subscribed</p>
+          </div>
+          {/* Rows */}
+          <div className="divide-y divide-[#2a2a2a]">
+            {filtered.map(s => (
+              <div key={s.id} className="grid grid-cols-3 px-5 py-3 hover:bg-[#1e1e1e] transition-colors">
+                <div className="col-span-2 flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-[#c9a84c]/10 border border-[#c9a84c]/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-[#c9a84c] text-xs font-medium">{s.email[0].toUpperCase()}</span>
+                  </div>
+                  <span className="text-[#f5f0e8] text-sm truncate">{s.email}</span>
+                </div>
+                <p className="text-[#9a9080] text-xs self-center">
+                  {new Date(s.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
